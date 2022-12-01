@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed,NotFound
 import jwt, datetime
 from django.db import connection
 
@@ -76,6 +76,55 @@ def getBookingReport(request):
         final_list.append(singleitem)
 
     return Response(final_list)
+
+@api_view(['PUT'])
+def editWasteList(request):
+
+    data_id =request.data['id']
+    data_charge=request.data['charge']
+
+    wasteval = wastes.objects.filter(id = data_id).first()
+
+    if wasteval is None:
+        raise NotFound('Not found.')
+
+    else:
+        return Response({'status':1})
+
+
+@api_view(['POST'])
+def postAddWaste(request):
+
+    serializer = wasteSerializer(data = request.data)
+
+    if(serializer.is_valid()):
+        serializer.save()
+        return Response({'status':1,'message':'Successfully Saved','data':serializer.data})
+
+    else:
+        return Response({'status':0,'message':'OOPS Some error occured','data':serializer.errors})
+
+
+
+
+@api_view(['POST'])
+def postDeleteWaste(request):
+
+    data_id=request.data['id']
+    waste = wastes.objects.filter(id = data_id).delete ()
+
+    response = Response()
+    response.data = {'message': 'Successfully deleted','status':1}
+    return response
+
+# @api_view(['POST'])
+# def postDeleteWaste(request):
+#     data_id = request.data['id']
+#     waste = wastes.objects.filter(id = data_id).delete  
+#     serializer = wasteSerializer(data = waste)
+#     response = Response()
+#     response.data = {'message': 'Successfully deleted','status':1,'data':serializer.data}
+#     return response
 
 # @api_view(['POST'])
 # def postBookingReport(request):
